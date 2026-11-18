@@ -96,8 +96,8 @@ function sprintLine(sp){
  return {n:n,step:step};
 }
 
-/* ---------- Claude as second opinion ---------- */
-const HIDE=["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"];
+/* ---------- Gemini as second opinion ---------- */
+const HIDE=["no_key","bad_key","not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"];
 async function grade(entry){
  if(!sample)return;const it=itemById[entry.id];
  const prompt="You are checking one short case-diagnosis item. Be strict on the substance and lenient on wording. "
@@ -111,9 +111,9 @@ async function grade(entry){
 
 /* ---------- Google Drive: briefs in, sources in, record out ---------- */
 function driveCopy(e){const c=e&&e.code;
- if(c==="needs_reauth")return "Google Drive needs reconnecting. Open claude.ai Settings, Connectors, and reconnect it.";
- if(c==="server_not_connected"||c==="selection_required")return "Google Drive is not connected for this app. Add it in claude.ai Settings, Connectors.";
- if(c==="not_in_manifest"||c==="approval_required"||c==="consent_required"||c==="not_granted")return "Drive access has not been allowed for this app. Tap Check Drive and choose Allow.";
+ if(c==="needs_reauth")return "Google Drive needs reconnecting. Tap Connect Google Drive under This app, below.";
+ if(c==="server_not_connected"||c==="selection_required")return "Google Drive is not connected. Sign in, then tap Connect Google Drive under This app.";
+ if(c==="not_in_manifest"||c==="approval_required"||c==="consent_required"||c==="not_granted")return "Drive refused the request. Tap Connect Google Drive and allow full Drive access.";
  if(c==="blocked_by_policy")return "Your organization blocks this Drive action.";
  if(c==="server_unavailable"||c==="rate_limited")return "Google Drive did not answer. Try again in a minute.";
  return "The Drive call failed ("+(c||"error")+").";}
@@ -138,7 +138,7 @@ function freePrefix(want){const used=new Set(SETLIST.map(s=>s.prefix));let p=(wa
  if(p.length>=2&&!used.has(p))return p;for(let i=1;i<200;i++){p="X"+i;if(!used.has(p))return p;}return "X"+Date.now();}
 async function build(file,kind){
  const job=m=>{ui.jobs[file.id]=m;render();};
- if(!sample){job("Claude is not available in this view, so lessons cannot be built here.");return;}
+ if(!sample){job("Add a Gemini key under This app to build lessons from Drive files.");return;}
  try{
   job("Reading "+file.title);
   let text=textOf(await drive("read_file_content",{fileId:file.id}));
@@ -167,8 +167,8 @@ async function build(file,kind){
   save("sets/"+id,S.sets[id]);rebuild();delete ui.jobs[file.id];R=null;render();
  }catch(e){
   if(e&&HIDE.indexOf(e.code)>=0)sample=null;
-  ui.jobs[file.id]=e&&e.code==="invalid_json"?"Claude's lessons came back malformed. Tap Build again."
-   :e&&e.code==="refused"?"Claude declined this file."
+  ui.jobs[file.id]=e&&e.code==="invalid_json"?"Gemini's lessons came back malformed. Tap Build again."
+   :e&&e.code==="refused"?"Gemini declined this file."
    :e&&e.code==="prompt_too_large"?"That file is too long. Split it into chapters and add those."
    :e&&e.code==="rate_limited"?"You have hit a usage limit. Try again later."
    :e&&(e.server||/server|reauth|manifest|approval/.test(e.code||""))?driveCopy(e):"Building failed ("+(e&&e.code||"error")+"). Tap Build again.";
@@ -493,7 +493,7 @@ function viewRetrieval(){
  else{const v=R.verdict;const mark=ok=>()=>{record(entry.id,ok,R.conf);R.res[R.i]=ok?1:0;const x=S.items[entry.id];R.last=entry.id+(ok?" moves out to "+diff(x.d,today)+" day"+(diff(x.d,today)===1?"":"s")+(x.s>=3?", learned":""):" comes back tomorrow");next();};keys({c:mark(true),m:mark(false)});
   b.push(h("div",{class:"verdict"},h("div",null,h("p",{class:"small quiet",text:"You wrote, "+CONF[R.conf].toLowerCase()}),h("p",{class:"mine",text:R.ans||"(nothing)"})),
    h("div",null,h("p",{class:"small quiet",text:"Reference answer"}),h("p",{class:"ref",text:it[3]}))));
-  if(sample&&!v)b.push(h("p",{class:"small quiet",text:"Claude is checking your answer."}));
+  if(sample&&!v)b.push(h("p",{class:"small quiet",text:"Gemini is checking your answer."}));
   if(v&&!v.failed)b.push(h("div",{class:"feedback "+(v.correct?"ok":"miss")},h("span",{class:"strong",text:"Second opinion: "+(v.correct?"correct. ":"missed. ")}),v.note));
   b.push(h("p",{class:"small quiet",text:"You make the call. Correct means the same diagnosis and the same reason. A miss brings it back on the next weekday."}),
    h("div",{class:"row"},h("button",{class:"act yes"+(v&&v.correct?" hint":""),onclick:mark(true)},"Correct",h("kbd",{text:"C"})),
@@ -592,7 +592,7 @@ function viewSet(s){
 function viewLibrary(){
  const out=[],dr=ui.drive;
  const Q=(ui.lq||"").trim().toLowerCase(),hit=t=>!Q||String(t||"").toLowerCase().indexOf(Q)>=0;
- if(ui.lib&&!Q){const s=SETLIST.find(x=>x.id===ui.lib);if(s)return viewSet(s).concat(driveSection(dr),recordSection());ui.lib=null;}
+ if(ui.lib&&!Q){const s=SETLIST.find(x=>x.id===ui.lib);if(s)return viewSet(s).concat(driveSection(dr),recordSection(),settingsSection());ui.lib=null;}
  out.push(h("div",{class:"stack"},h("p",{class:"quiet small",text:"Every lesson, every case with its answer, and your record on each. Open anything, as often as you like."}),
   h("label",{for:"lq"},"Find a lesson or case",h("input",{id:"lq",type:"text",placeholder:"a word from a title, a case, or an answer",value:ui.lq||"",oninput:e=>{ui.lq=e.target.value;ui.lqFocus=true;render(true);}}))));
  if(Q){const sec=h("div",{class:"sec"},h("h3",{text:"Matches"}));let n=0;
@@ -602,8 +602,9 @@ function viewLibrary(){
    its.forEach(i=>sec.append(itemRow(i)));});
   if(!n)sec.append(h("p",{class:"quiet",text:"Nothing matches that word. Try a shorter one."}));out.push(sec);}
  else{const shelf=h("div",{class:"map"});SETLIST.forEach(s=>shelf.append(shelfCard(s)));out.push(h("div",{class:"sec"},h("h3",{text:"Study sets"}),shelf));}
- return out.concat(driveSection(dr),recordSection());
+ return out.concat(driveSection(dr),recordSection(),settingsSection());
 }
+function settingsSection(){return window.Peerless&&window.Peerless.settingsNode?window.Peerless.settingsNode(h):null;}
 function driveSection(dr){
  const dsec=h("div",{class:"sec"},h("h3",{text:"From your Google Drive"}),
   h("p",{class:"small"},"New sprint briefs arrive in ",h("a",{href:FOLDER_URL(FOLDER.briefs),target:"_blank",rel:"noopener",text:"Peerless, Briefs"}),
@@ -658,8 +659,9 @@ window.addEventListener("hashchange",route);
 /* ---------- start ---------- */
 async function start(){
  rebuild();route();
- const C=window.claude,offline=()=>{dbState="none";note("This view cannot save. Open the app inside Claude while signed in. Anything you tap here is lost when the page reloads.");Object.keys(loaded).forEach(k=>loaded[k]=true);render(true);};
+ const C=window.Peerless,offline=()=>{dbState="none";note("Your record could not be reached. Check your connection and reload. Anything you tap now is lost when the page reloads.");Object.keys(loaded).forEach(k=>loaded[k]=true);render(true);};
  if(!C||!C.use){offline();return;}
+ C.onChange=()=>render(true);
  C.use("sample").then(s=>{sample=s||null;}).catch(()=>{});
  const mcpReady=C.use("mcp").then(m=>{mcp=m||null;}).catch(()=>{});
  let d=null;try{d=await C.use("db");}catch(e){}

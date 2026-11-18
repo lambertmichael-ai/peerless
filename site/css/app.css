@@ -197,3 +197,8 @@ ul.checks li.ok::before{background:var(--ok);border-color:var(--ok)}
 table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
 th,td{text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid var(--rule2);vertical-align:top}
 th{font:600 13px/1.2 var(--cond);letter-spacing:.06em;text-transform:uppercase;color:var(--quiet);white-space:nowrap}
+
+/* sign-in gate (platform.js) */
+.gate{position:fixed;inset:0;z-index:20;background:var(--frame);display:flex;align-items:center;justify-content:center;padding:24px}
+.gatecard{background:var(--card);color:var(--ink);border-radius:8px;padding:24px;max-width:380px;width:100%;display:flex;flex-direction:column;gap:14px}
+.gatecard h2{font:600 28px/1 var(--cond)}
