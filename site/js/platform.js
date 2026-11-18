@@ -183,30 +183,31 @@ async function saveKey(v){
 
 function settingsNode(h){
  const out=h("div",{class:"sec",id:"settings"},h("h3",{text:"This app"}));
- if(P.mode==="local")out.append(h("p",{class:"small quiet",text:"Local mode. Your record is saved in this browser only. Add the Firebase settings to js/config.js to sync it to your account."}));
- else out.append(h("p",{class:"small quiet",text:"Signed in as "+(P.user&&P.user.email||"you")+". Your record syncs to your Firebase project."}));
+ const add=function(){for(let i=0;i<arguments.length;i++){const c=arguments[i];if(c!=null&&c!==false)out.append(c);}};
+ if(P.mode==="local")add(h("p",{class:"small quiet",text:"Local mode. Your record is saved in this browser only. Add the Firebase settings to js/config.js to sync it to your account."}));
+ else add(h("p",{class:"small quiet",text:"Signed in as "+(P.user&&P.user.email||"you")+". Your record syncs to your Firebase project."}));
  /* install */
  if(!standalone()){
-  if(P.installEvt)out.append(h("div",{class:"row"},h("button",{class:"act",text:"Install on this device",onclick:async()=>{const e=P.installEvt;P.installEvt=null;e.prompt();await e.userChoice.catch(()=>{});changed();}})));
-  else if(isIOS())out.append(h("p",{class:"small",text:"To install on iPhone: open this page in Safari, tap Share, then Add to Home Screen."}));
+  if(P.installEvt)add(h("div",{class:"row"},h("button",{class:"act",text:"Install on this device",onclick:async()=>{const e=P.installEvt;P.installEvt=null;e.prompt();await e.userChoice.catch(()=>{});changed();}})));
+  else if(isIOS())add(h("p",{class:"small",text:"To install on iPhone: open this page in Safari, tap Share, then Add to Home Screen."}));
  }
  /* gemini */
  const has=!!geminiKey();
- out.append(h("label",{for:"gkey"},"Gemini API key "+(has?"(saved)":"(not set)"),h("input",{id:"gkey",type:"password",autocomplete:"off",placeholder:has?"Paste a new key to replace it":"Paste the key from aistudio.google.com"})),
+ add(h("label",{for:"gkey"},"Gemini API key "+(has?"(saved)":"(not set)"),h("input",{id:"gkey",type:"password",autocomplete:"off",placeholder:has?"Paste a new key to replace it":"Paste the key from aistudio.google.com"})),
   h("div",{class:"row"},h("button",{class:"act",text:"Save key",onclick:()=>saveKey(document.getElementById("gkey").value)}),has?h("button",{class:"plain",text:"Remove key",onclick:()=>saveKey("")}):null),
   P.keyMsg?h("p",{class:"small",text:P.keyMsg}):null,
   h("p",{class:"small quiet",text:"Gemini gives a second opinion on retrieval answers and builds lessons from Drive files. Free tier. Google may use free-tier prompts to improve its products, so the app sends it case items and your answers, never your reflections."}));
  if(P.mode==="cloud"){
   /* drive */
-  out.append(h("div",{class:"row"},h("button",{class:"act",text:token()?"Reconnect Google Drive":"Connect Google Drive",onclick:connectDrive})),
+  add(h("div",{class:"row"},h("button",{class:"act",text:token()?"Reconnect Google Drive":"Connect Google Drive",onclick:connectDrive})),
    h("p",{class:"small quiet",text:token()?"Drive is connected. Google tokens last an hour, then this button renews it.":"Drive is not connected right now. Tap to connect it for the next hour."}),
    P.driveMsg?h("p",{class:"small",text:P.driveMsg}):null);
   /* push */
   if(CFG.vapidPublicKey){
-   out.append(h("div",{class:"row"},P.settings.pushOn?h("button",{class:"act",text:"Turn off morning push",onclick:disablePush}):h("button",{class:"act",text:"Turn on morning push",onclick:enablePush})),
+   add(h("div",{class:"row"},P.settings.pushOn?h("button",{class:"act",text:"Turn off morning push",onclick:disablePush}):h("button",{class:"act",text:"Turn on morning push",onclick:enablePush})),
     P.pushMsg?h("p",{class:"small",text:P.pushMsg}):null);
   }
-  out.append(h("div",{class:"row"},h("button",{class:"plain",text:"Sign out",onclick:async()=>{lsSet("gtoken",null);await auth.signOut();location.reload();}})));
+  add(h("div",{class:"row"},h("button",{class:"plain",text:"Sign out",onclick:async()=>{lsSet("gtoken",null);await auth.signOut();location.reload();}})));
  }
  return out;
 }

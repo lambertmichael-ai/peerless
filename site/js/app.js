@@ -534,17 +534,19 @@ function viewForecasts(){
  out.push(h("div",{class:"stack"},h("div",{class:"figs"},fig("Logged",ids.length),fig("Resolved",res.length),fig("Mean Brier, lower is better",mean)),
   h("p",{class:"small quiet",text:"Always saying 50 percent scores 0.250. Under about 30 resolved forecasts, the mean is mostly noise."})));
  out.push(calView(calSum(Object.keys(S.days)),"Retrieval calibration, all time","Every retrieval answer carries a confidence rating. This is the same skill as forecasting, scored daily instead of weekly."));
+ const FD=ui.fcDraft||{};
  out.push(h("div",{class:"sec"},h("h3",{text:"Log a forecast"}),
-  h("label",{for:"fq"},"Question, with a yes or no outcome",h("input",{id:"fq",type:"text"})),
-  h("label",{for:"fb"},"Base rate: the comparison class and how often it happens",h("input",{id:"fb",type:"text"})),
-  h("div",{class:"row"},h("label",{for:"fp",style:"flex:1;min-width:120px"},"Your percent",h("input",{id:"fp",type:"number",min:"1",max:"99",inputmode:"numeric"})),
-   h("label",{for:"fd",style:"flex:1;min-width:160px"},"Resolves by",h("input",{id:"fd",type:"date",min:today}))),
+  h("label",{for:"fq"},"Question, with a yes or no outcome",h("input",{id:"fq",type:"text",value:FD.q||""})),
+  h("label",{for:"fb"},"Base rate: the comparison class and how often it happens",h("input",{id:"fb",type:"text",value:FD.b||""})),
+  h("div",{class:"row"},h("label",{for:"fp",style:"flex:1;min-width:120px"},"Your percent",h("input",{id:"fp",type:"number",min:"1",max:"99",inputmode:"numeric",value:FD.p||""})),
+   h("label",{for:"fd",style:"flex:1;min-width:160px"},"Resolves by",h("input",{id:"fd",type:"date",min:today,value:FD.d||""}))),
   ui.fcErr?h("p",{class:"notice",text:ui.fcErr}):null,
   h("div",{class:"row"},h("button",{class:"act fill",text:"Log forecast",onclick:()=>{
    const q=$("#fq").value.trim(),b=$("#fb").value.trim(),p=Number($("#fp").value),d=$("#fd").value;
+   ui.fcDraft={q:$("#fq").value,b:$("#fb").value,p:$("#fp").value,d:d};
    if(!b){ui.fcErr="State a base rate first. No percent is accepted without one.";render(true);return;}
    if(!q||!d||!(p>=1&&p<=99)){ui.fcErr="Add the question, a percent from 1 to 99, and a resolution date.";render(true);return;}
-   const id="f"+Date.now().toString(36);S.fc[id]={q:q,base:b,pct:p,by:d,created:today};save("forecasts/"+id,S.fc[id]);ui.fcErr="";render(true);}}))));
+   const id="f"+Date.now().toString(36);S.fc[id]={q:q,base:b,pct:p,by:d,created:today};save("forecasts/"+id,S.fc[id]);ui.fcErr="";ui.fcDraft=null;render(true);}}))));
  ids.forEach(k=>{const f=S.fc[k],done=f.outcome===0||f.outcome===1,dueNow=!done&&f.by<=today;
   const setO=o=>{S.fc[k]=Object.assign({},f,{outcome:o});save("forecasts/"+k,S.fc[k]);render(true);};
   out.push(h("div",{class:"sec"},h("div",{class:"row spread"},h("h3",{text:f.q}),h("span",{class:"state "+(done?"ok":dueNow?"due":"idle"),text:done?"Resolved":dueNow?"Due now":"Open"})),

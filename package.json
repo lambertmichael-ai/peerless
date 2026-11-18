@@ -1,0 +1,19 @@
+{
+  "name": "peerless",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Peerless Daily, the phone app for The Peerless Build",
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "test": "playwright test",
+    "push": "node scripts/send-push.mjs",
+    "vapid": "web-push generate-vapid-keys"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "web-push": "^3.6.7"
+  }
+}
