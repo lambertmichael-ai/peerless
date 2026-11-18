@@ -11,6 +11,6 @@ window.PEERLESS_CONFIG = {
     appId: ""
   }, */
   firebaseSdk: "10.14.1",
-  vapidPublicKey: "",
+  vapidPublicKey: "BFjTCXz4d5FPtETGm1aZTWucWpUMY8MxwHT6aW8ml8YuBgY8FbI2A3giDk3CjRdXYFOG6bLrRTICgvCTkqXndBY",
   gemini: { model: "gemini-flash-latest", quickModel: "gemini-flash-lite-latest", fallbackModel: "gemini-2.5-flash" }
 };
