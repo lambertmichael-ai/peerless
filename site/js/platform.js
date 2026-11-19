@@ -14,7 +14,9 @@ const lsGet=k=>{try{return localStorage.getItem(LS+k);}catch(e){return null;}};
 const lsSet=(k,v)=>{try{if(v==null)localStorage.removeItem(LS+k);else localStorage.setItem(LS+k,v);}catch(e){}};
 const err=(code,extra)=>Object.assign(new Error(code),{code:code},extra||{});
 
-const P={mode:CFG.firebase?"cloud":"local",user:null,uid:null,settings:{},onChange:null,installEvt:null,pushMsg:"",driveMsg:"",keyMsg:""};
+/* ?local=1 forces local mode: used by the tests, and handy for trying the app without signing in. */
+const forceLocal=/[?&]local=1\b/.test(location.search);
+const P={mode:CFG.firebase&&!forceLocal?"cloud":"local",user:null,uid:null,settings:{},onChange:null,installEvt:null,pushMsg:"",driveMsg:"",keyMsg:""};
 const changed=()=>{if(typeof P.onChange==="function")P.onChange();};
 
 /* ---------- local db: same surface as the Firestore calls the app makes ---------- */

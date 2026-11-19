@@ -8,7 +8,7 @@ async function open(page, when = WEDNESDAY, hash = "#today") {
   await page.clock.setFixedTime(when);
   // Keep tests off the network: fonts and Google APIs are stubbed or blocked.
   await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
-  await page.goto("/" + hash);
+  await page.goto("/?local=1" + hash);
   await expect(page.locator("#main")).not.toContainText("Loading your record");
 }
 

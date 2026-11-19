@@ -1,5 +1,7 @@
 # One-time setup
 
+Status, Nov 19, 2026: steps 1 and 2 are done (project `peerless-e432e`, Spark plan, Google sign-in, authorized domain, Firestore in nam5 with rules, Drive API on, consent screen in production for external users). Steps 3 and 4 need you, because they involve keys and secrets.
+
 Pages works on its own in local mode. These steps turn on sync, Drive, answer checks, and morning push. All free. About 25 minutes.
 
 ## 1. Firebase project (the record)
@@ -15,7 +17,7 @@ The app reads sprint briefs and source files from Drive and writes the daily exp
 
 1. Open https://console.cloud.google.com, pick the `peerless` project.
 2. APIs and Services, Library, Google Drive API, Enable.
-3. APIs and Services, OAuth consent screen (Google Auth Platform). Audience: if it says Testing, add your Google address as a test user. Google will show an "unverified app" screen at sign-in. Choose Advanced, then continue. That is expected for a personal app.
+3. Google Auth Platform, Audience: In production, External. No test users needed. Google will show an "unverified app" screen at sign-in. Choose Advanced, then continue. That is expected for a personal app, and the cap is 100 users.
 
 Google tokens last one hour. When one runs out, Library, This app, Connect Google Drive renews it.
 
