@@ -1,6 +1,6 @@
 # One-time setup
 
-Status, Nov 19, 2026: steps 1 and 2 are done (project `peerless-e432e`, Spark plan, Google sign-in, authorized domain, Firestore in nam5 with rules, Drive API on, consent screen in production for external users). Steps 3 and 4 need you, because they involve keys and secrets.
+Status, Nov 19, 2026: steps 1 and 2 are done (project `peerless-e432e`, Spark plan, Google sign-in, authorized domain, Firestore in nam5 with rules, Drive API on, consent screen in production for external users). Steps 3 and 4 need you, because they involve keys and secrets: one Gemini key in the app, one GitHub secret.
 
 Pages works on its own in local mode. These steps turn on sync, Drive, answer checks, and morning push. All free. About 25 minutes.
 
@@ -31,18 +31,15 @@ The key is stored in your private Firestore record, never in this repo. Free-tie
 ## 4. Morning push
 
 1. Firebase console, Project settings, Service accounts, Generate new private key. A JSON file downloads.
-2. GitHub repo, Settings, Secrets and variables, Actions, New repository secret, four times:
-   - `FIREBASE_SERVICE_ACCOUNT`: the whole JSON file's contents
-   - `VAPID_PUBLIC_KEY`: the `vapidPublicKey` value in `site/js/config.js`
-   - `VAPID_PRIVATE_KEY`: the private key that pairs with it
-   - `VAPID_SUBJECT`: `mailto:` plus your email
+2. GitHub repo, Settings, Secrets and variables, Actions, New repository secret. Name: `FIREBASE_SERVICE_ACCOUNT`. Value: the whole JSON file. This is the only secret.
 3. Delete the downloaded JSON file.
-4. On the iPhone: open the app in Safari, Share, Add to Home Screen. Open it from the Home Screen, sign in, Library, This app, Turn on morning push, Allow.
-5. Test: GitHub, Actions, Morning push, Run workflow, check "Send now", Run.
+4. GitHub, Actions, Morning push, Run workflow, check "Send now", Run. The first run makes the push keys and stores them in Firestore (`config/vapid`, closed to every browser, and `public/vapid`, the public half the app reads).
+5. On the iPhone: open the app in Safari, Share, Add to Home Screen. Open it from the Home Screen, sign in, Library, This app, Turn on morning push, Allow.
+6. Run the workflow with "Send now" once more to test.
 
 The job runs weekdays at 12:11 and 13:11 UTC and sends once, between 8 and 10 am Eastern, with the count of cases due. GitHub often starts cron jobs 5 to 20 minutes late.
 
-To make new VAPID keys: `npx web-push generate-vapid-keys`, then update the public key in `config.js` and both secrets, and turn push off and on again on each device.
+To replace the push keys: delete `config/vapid` and `public/vapid` in the Firestore console, run the workflow, then turn push off and on again on each device.
 
 ## 5. Point the program at the new address
 

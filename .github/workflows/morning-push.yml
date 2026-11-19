@@ -20,17 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-      VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
-      VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
-      VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
       APP_URL: https://lambertmichael-ai.github.io/peerless/
     steps:
       - uses: actions/checkout@v4
       - name: Skip until the push secrets exist
         id: gate
         run: |
-          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ] || [ -z "$VAPID_PRIVATE_KEY" ]; then
-            echo "Push secrets are not set yet. See docs/SETUP.md. Nothing sent."; echo "ready=false" >> "$GITHUB_OUTPUT"
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "The FIREBASE_SERVICE_ACCOUNT secret is not set yet. See docs/SETUP.md. Nothing sent."; echo "ready=false" >> "$GITHUB_OUTPUT"
           else echo "ready=true" >> "$GITHUB_OUTPUT"; fi
       - uses: actions/setup-node@v4
         if: steps.gate.outputs.ready == 'true'

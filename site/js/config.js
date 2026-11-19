@@ -10,6 +10,6 @@ window.PEERLESS_CONFIG = {
     appId: "1:1046017354160:web:ae5c4f70e7b9a929638e75"
   },
   firebaseSdk: "10.14.1",
-  vapidPublicKey: "BFjTCXz4d5FPtETGm1aZTWucWpUMY8MxwHT6aW8ml8YuBgY8FbI2A3giDk3CjRdXYFOG6bLrRTICgvCTkqXndBY",
+  vapidPublicKey: "", /* empty: the app reads it from Firestore public/vapid, made by the push job */
   gemini: { model: "gemini-flash-latest", quickModel: "gemini-flash-lite-latest", fallbackModel: "gemini-2.5-flash" }
 };

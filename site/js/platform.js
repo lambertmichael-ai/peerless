@@ -154,7 +154,10 @@ async function enablePush(){
   const perm=await Notification.requestPermission();
   if(perm!=="granted"){P.pushMsg="Notifications are blocked. Allow them in Settings for this app, then tap again.";changed();return;}
   const r=swReg||await navigator.serviceWorker.ready;
-  const s=(await r.pushManager.getSubscription())||await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(CFG.vapidPublicKey)});
+  let vk=CFG.vapidPublicKey;
+  if(!vk){const d=await fs.doc("public/vapid").get();vk=d.exists?d.data().publicKey:"";}
+  if(!vk){P.pushMsg="Push keys are not made yet. On GitHub, open Actions, Morning push, Run workflow, then tap this again.";changed();return;}
+  const s=(await r.pushManager.getSubscription())||await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(vk)});
   const j=s.toJSON();
   await fs.doc("users/"+P.uid+"/push/"+await subId(j.endpoint)).set({endpoint:j.endpoint,keys:j.keys,tz:Intl.DateTimeFormat().resolvedOptions().timeZone,ua:navigator.userAgent.slice(0,120),created:new Date().toISOString()});
   P.settings.pushOn=true;P.pushMsg="Morning push is on for this device. It arrives weekdays around 8:11 am.";
@@ -205,7 +208,7 @@ function settingsNode(h){
    h("p",{class:"small quiet",text:token()?"Drive is connected. Google tokens last an hour, then this button renews it.":"Drive is not connected right now. Tap to connect it for the next hour."}),
    P.driveMsg?h("p",{class:"small",text:P.driveMsg}):null);
   /* push */
-  if(CFG.vapidPublicKey){
+  {
    add(h("div",{class:"row"},P.settings.pushOn?h("button",{class:"act",text:"Turn off morning push",onclick:disablePush}):h("button",{class:"act",text:"Turn on morning push",onclick:enablePush})),
     P.pushMsg?h("p",{class:"small",text:P.pushMsg}):null);
   }

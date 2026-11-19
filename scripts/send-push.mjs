@@ -1,7 +1,9 @@
 // Morning push for Peerless Daily. Run by .github/workflows/morning-push.yml.
 // Reads every push subscription from Firestore, and on a weekday between 8 and 10 am in the
 // subscriber's time zone sends one notification per user per day, with the number of cases due.
-// Env: FIREBASE_SERVICE_ACCOUNT (JSON), VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, APP_URL.
+// Env: FIREBASE_SERVICE_ACCOUNT (JSON) is the only secret. APP_URL and VAPID_SUBJECT are optional.
+// Push keys (VAPID) live in Firestore: config/vapid holds the pair and is closed to every client,
+// public/vapid holds the public key the app reads. The first run creates them.
 // Flag: --force sends now, ignoring the clock and the once-a-day guard (for testing).
 import admin from "firebase-admin";
 import webpush from "web-push";
@@ -9,8 +11,20 @@ import webpush from "web-push";
 const force = process.argv.includes("--force");
 const need = k => { const v = process.env[k]; if (!v) { console.error("Missing secret " + k); process.exit(1); } return v; };
 admin.initializeApp({ credential: admin.credential.cert(JSON.parse(need("FIREBASE_SERVICE_ACCOUNT"))) });
-webpush.setVapidDetails(process.env.VAPID_SUBJECT || "mailto:peerless@example.com", need("VAPID_PUBLIC_KEY"), need("VAPID_PRIVATE_KEY"));
 const db = admin.firestore();
+async function vapid() {
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) return { publicKey: process.env.VAPID_PUBLIC_KEY, privateKey: process.env.VAPID_PRIVATE_KEY };
+  const ref = db.doc("config/vapid"), got = await ref.get();
+  if (got.exists) return got.data();
+  const k = webpush.generateVAPIDKeys();
+  await ref.set({ publicKey: k.publicKey, privateKey: k.privateKey, created: new Date().toISOString() });
+  await db.doc("public/vapid").set({ publicKey: k.publicKey });
+  console.log("created push keys in Firestore");
+  return k;
+}
+const keys = await vapid();
+await db.doc("public/vapid").set({ publicKey: keys.publicKey }, { merge: true });
+webpush.setVapidDetails(process.env.VAPID_SUBJECT || "mailto:lambertmichael-ai@users.noreply.github.com", keys.publicKey, keys.privateKey);
 const appUrl = process.env.APP_URL || "./";
 
 function local(tz) {
